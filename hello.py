@@ -65,11 +65,13 @@ class SpeechListAPI(Resource):
         args =  self.reqparse.parse_args()
         speech = {
             'id':speeches[-1]['id'] + 1,
-            'title':args['topic'],
-            'description':args['event'],
+            'topic':args['topic'],
+            'event':args['event'],
           # 'link':args['link'],
           #  'date':args['date']
         }
+        speeches.append(speech)
+        return {'speech': marshal(speech, speech_fields)}, 201
 #api.add_resource(UserAPI, '/users/<int:id>', endpoint= 'user')
 api.add_resource(SpeechListAPI, '/josh/api/v1.0/speeches', endpoint = 'speeches')
 
