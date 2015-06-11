@@ -1,3 +1,4 @@
+from random import randint
 from flask import Flask, jsonify, abort, make_response
 from flask.ext.restful import Api, Resource, reqparse, fields, marshal
 from flask.ext.httpauth import HTTPBasicAuth
@@ -36,50 +37,40 @@ speeches = [
     }
 
 ]
-speech_fields = {
-	'topic': fields.String,
-    'event': fields.String,
-    'uri': fields.Url('speech'),
-    'date': fields.String
+match_fields = {
+	'home_score': fields.Integer,
+    'away_score': fields.Integer,
+    
 }
 
-class SpeechListAPI(Resource):
+class MatchOutcomeAPI(Resource):
     #decorators = [auth.login_required]
 
     def __init__(self):
         self.reqparse = reqparse.RequestParser()
-        self.reqparse.add_argument('topic', type = str, required = True,
-            help = 'No Topic Provided', location = 'json')
-        self.reqparse.add_argument('event', type = str, required = True,
-            help = 'No Event Provided', location = 'json')
-        self.reqparse.add_argument('date', type = str, required = True,
-            help = 'No Topic Provided', location = 'json')
-        super(SpeechListAPI, self).__init__()
+        self.reqparse.add_argument('home_score', type = int, required = True,
+            help = 'No Home Score Provided', location = 'json')
+        self.reqparse.add_argument('away_score', type = int, required = True,
+            help = 'No Home Score Provided', location = 'json')
+        super(MatchOutcomeAPI, self).__init__()
 
-    def get(self):
-        return {'speeches': [marshal(speech, speech_fields) for speech in speeches]}
-        
-    def post(self):
-        args =  self.reqparse.parse_args()
-        speech = {
-            'id':speeches[-1]['id'] + 1,
-            'topic':args['topic'],
-            'event':args['event'],
-            #'link':args['link'],
-            'date':args['date']
-        }
-        speeches.append(speech)
-        return {'speech': marshal(speech, speech_fields)}, 201
+    def get_outcome(self):
+        #this has to magically calculate a random score. it mustn't be the exact same for a given game, as it would only be asked one time anyway?
+        return {'home_score':randint(65,125),'away_score':randint(65,125)}
 
-class SpeechAPI(Resource):
+    def get(self, matchid):
+        match = self.get_outcome()
+        return {'outcome': marshal(match, match_fields)}
+   
+class MatchListAPI(Resource):
     def __init__(self):
         self.reqparse = reqparse.RequestParser()
         self.reqparse.add_argument('topic', type=str, location='json')
         self.reqparse.add_argument('event', type=str, location='json')
         self.reqparse.add_argument('data', type=str, location='json')
-        super(SpeechAPI, self).__init__()
-
-    def get(self, id):
+        super(MatchListAPI, self).__init__()
+'''
+    def get(self):
         speech = [speech for speech in speeches if speech['id'] == id]
         if len(speech) == 0:
             abort(404)
@@ -89,10 +80,10 @@ class SpeechAPI(Resource):
             if v is not None:
                 speech[k] = v
             return {'speech': marshal(speech, speech_fields)}
-
+'''
 #api.add_resource(UserAPI, '/users/<int:id>', endpoint= 'user')
-api.add_resource(SpeechListAPI, '/josh/api/v1.0/speeches', endpoint = 'speeches')
-api.add_resource(SpeechAPI, '/josh/api/v1.0/speeches/<int:id>', endpoint = 'speech')
+api.add_resource(MatchOutcomeAPI, '/josh/api/v1.0/scores/<string:matchid>', endpoint = 'match')
+api.add_resource(MatchListAPI, '/josh/api/v1.0/matches', endpoint = 'matches')
 
 if __name__ == "__main__":
     app.run(debug=True)
