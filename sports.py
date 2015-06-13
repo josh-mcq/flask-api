@@ -1,4 +1,4 @@
-from random import randint
+from random import randint, choice
 from flask import Flask, jsonify, abort, make_response
 from flask.ext.restful import Api, Resource, reqparse, fields, marshal
 from flask.ext.httpauth import HTTPBasicAuth
@@ -56,7 +56,12 @@ class MatchOutcomeAPI(Resource):
 
     def get_outcome(self):
         #this has to magically calculate a random score. it mustn't be the exact same for a given game, as it would only be asked one time anyway?
-        return {'home_score':randint(65,125),'away_score':randint(65,125)}
+        scoring_range = range(65, 70)
+        home_score = choice(scoring_range)
+        away_score = choice(scoring_range) 
+        while home_score == away_score:
+            away_score = choice(scoring_range)   
+        return {'home_score':home_score,'away_score':away_score}
 
     def get(self, matchid):
         match = self.get_outcome()
@@ -70,6 +75,7 @@ class MatchListAPI(Resource):
         self.reqparse.add_argument('data', type=str, location='json')
         super(MatchListAPI, self).__init__()
 '''
+# for each day, it should generate two matches.  and only if two matches have not been generated for that day already.  or simply use the date as a relatively random way and write a test that verifies that all teams will end up getting an equal number of games over a large number(a season)
     def get(self):
         speech = [speech for speech in speeches if speech['id'] == id]
         if len(speech) == 0:
