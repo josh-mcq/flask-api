@@ -53,20 +53,24 @@ class MatchOutcomeAPI(Resource):
         self.reqparse.add_argument('away_score', type = int, required = True,
             help = 'No Home Score Provided', location = 'json')
         super(MatchOutcomeAPI, self).__init__()
-
+   
+    def get(self, matchid):
+        ''' Return an a set of scores, nested in json correctly so that'''
+        match = self.get_outcome()
+        return {marshal(match, match_fields)}
+        #this needs to return home_period_scores and away_period_scores, each just being a list of four scores
+    
     def get_outcome(self):
         #this has to magically calculate a random score. it mustn't be the exact same for a given game, as it would only be asked one time anyway?
-        scoring_range = range(65, 70)
-        home_score = choice(scoring_range)
-        away_score = choice(scoring_range) 
+        scoring_range = range(18, 32)
+        home_score = sum([choice(scoring_range) for q in range(4)])
+        away_score = sum([choice(scoring_range) for q in range(4)])
         while home_score == away_score:
-            away_score = choice(scoring_range)   
+            away_score = sum([choice(scoring_range) for q in range(4)])  
         return {'home_score':home_score,'away_score':away_score}
 
-    def get(self, matchid):
-        match = self.get_outcome()
-        return {'outcome': marshal(match, match_fields)}
-   
+
+
 class MatchListAPI(Resource):
     def __init__(self):
         self.reqparse = reqparse.RequestParser()
@@ -74,6 +78,10 @@ class MatchListAPI(Resource):
         self.reqparse.add_argument('event', type=str, location='json')
         self.reqparse.add_argument('data', type=str, location='json')
         super(MatchListAPI, self).__init__()
+
+    def get(self):
+        pass
+
 '''
 # for each day, it should generate two matches.  and only if two matches have not been generated for that day already.  or simply use the date as a relatively random way and write a test that verifies that all teams will end up getting an equal number of games over a large number(a season)
     def get(self):
